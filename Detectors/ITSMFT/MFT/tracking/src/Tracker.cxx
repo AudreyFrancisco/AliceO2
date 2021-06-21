@@ -111,6 +111,7 @@ void Tracker::findTracksLTF(ROframe& event)
   Int_t binR_proj, binPhi_proj, bin;
   Int_t binIndex, clsMinIndex, clsMaxIndex, clsMinIndexS, clsMaxIndexS;
   Int_t extClsIndex;
+  Float_t dz = 0.;
   Float_t dR, dRmin, dRcut = constants::mft::LTFclsRCut;
   std::vector<Int_t> binsR, binsPhi, binsRS, binsPhiS;
   Bool_t hasDisk[constants::mft::DisksNumber], newPoint, seed = kTRUE;
@@ -120,6 +121,8 @@ void Tracker::findTracksLTF(ROframe& event)
 
   binsR.resize(constants::index_table::LTFinterBinWin);
   binsPhi.resize(constants::index_table::LTFinterBinWin);
+
+  Bool_t LTFConeRadius(constants::mft::LTFConeRadius);
 
   Int_t step = 0;
 
@@ -205,7 +208,9 @@ void Tracker::findTracksLTF(ROframe& event)
                 binsPhi[i] = binPhi_proj + (i - constants::index_table::LTFinterBinWin / 2);
               }
               // loop over the bins in the search window
-              dRmin = dRcut;
+              dz = constants::mft::LayerZCoordinate()[layer2] - constants::mft::LayerZCoordinate()[layer1];
+              dRmin = LTFConeRadius ? dRcut * ( 1 + dz  * constants::mft::InverseLayerZCoordinate()[layer1]) : dRcut;
+
               for (auto binR : binsR) {
                 for (auto binPhi : binsPhi) {
                   // the global bin index
@@ -295,6 +300,8 @@ void Tracker::findTracksCA(ROframe& event)
   Float_t dR, dRcut = constants::mft::ROADclsRCut;
   std::vector<Int_t> binsR, binsPhi, binsRS, binsPhiS;
   Bool_t hasDisk[constants::mft::DisksNumber], newPoint;
+  
+  Bool_t CAConeRadius(constants::mft::CAConeRadius);
 
   binsRS.resize(constants::index_table::LTFseed2BinWin);
   binsPhiS.resize(constants::index_table::LTFseed2BinWin);
@@ -326,6 +333,9 @@ void Tracker::findTracksCA(ROframe& event)
           binsRS[i] = binR_proj + (i - constants::index_table::LTFseed2BinWin / 2);
           binsPhiS[i] = binPhi_proj + (i - constants::index_table::LTFseed2BinWin / 2);
         }
+
+        dz = constants::mft::LayerZCoordinate()[layer2] - constants::mft::LayerZCoordinate()[layer1];
+        dRmin = CAConeRadius ? dRcut * ( 1 + dz  * constants::mft::InverseLayerZCoordinate()[layer1]) : dRcut;
 
         // loop over the bins in the search window
         for (auto binRS : binsRS) {

@@ -71,6 +71,9 @@ constexpr Float_t InverseRBinSize{RBins / (RMax - RMin)};
 constexpr UChar_t LTFseed2BinWin{3};
 constexpr UChar_t LTFinterBinWin{3};
 
+constexpr Bool_t LTFConeRadius{kFALSE};
+constexpr Bool_t CAConeRadius{kFALSE};
+
 constexpr Int_t getRBinIndex(const Float_t r)
 {
   return (Int_t)((r - RMin) * InverseRBinSize);
