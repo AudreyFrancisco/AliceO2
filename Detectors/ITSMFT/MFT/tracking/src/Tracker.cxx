@@ -59,6 +59,8 @@ void Tracker::initConfig(const MFTTrackingParam& trkParam, bool printConfig)
   mROADclsR2Cut = mROADclsRCut * mROADclsRCut;
   mLTFseed2BinWin = trkParam.LTFseed2BinWin;
   mLTFinterBinWin = trkParam.LTFinterBinWin;
+  mLTFConeRadius = trkParam.LTFConeRadius;
+  mCAConeRadius = trkParam.CAConeRadius;
 
   mRBins = trkParam.RBins;
   mPhiBins = trkParam.PhiBins;
@@ -209,6 +211,7 @@ void Tracker::findTracksLTF(ROframe& event)
   Int_t binR_proj, binPhi_proj, bin;
   Int_t binIndex, clsMinIndex, clsMaxIndex, clsMinIndexS, clsMaxIndexS;
   Int_t extClsIndex;
+  Float_t dz = 0., dRCone = 1.;
   Float_t dR2, dR2min, dR2cut = mLTFclsR2Cut;
   Bool_t hasDisk[constants::mft::DisksNumber], newPoint;
 
@@ -266,8 +269,12 @@ void Tracker::findTracksLTF(ROframe& event)
 
             newPoint = kTRUE;
 
+            //check if road is a cylinder or a cone
+            dz = constants::mft::LayerZCoordinate()[layer2] - constants::mft::LayerZCoordinate()[layer1];
+            dRCone = 1 + dz * constants::mft::InverseLayerZCoordinate()[layer1];
+
             // loop over the bins in the search window
-            dR2min = dR2cut;
+            dR2min = mLTFConeRadius ? dR2cut * dRCone * dRCone : dR2cut;
             for (auto& bin : mBins[layer1][layer - 1][cluster1.indexTableBin]) {
 
               getBinClusterRange(event, layer, bin, clsMinIndex, clsMaxIndex);
@@ -359,7 +366,8 @@ void Tracker::findTracksCA(ROframe& event)
   Int_t roadId, nPointDisks;
   Int_t binR_proj, binPhi_proj, bin;
   Int_t binIndex, clsMinIndex, clsMaxIndex, clsMinIndexS, clsMaxIndexS;
-  Float_t dR2, dR2cut = mROADclsR2Cut;
+  Float_t dz = 0., dRCone = 1.;
+  Float_t dR2, dR2min, dR2cut = mROADclsR2Cut;
   Bool_t hasDisk[constants::mft::DisksNumber];
 
   Int_t clsInLayer1, clsInLayer2, clsInLayer;
@@ -400,6 +408,12 @@ void Tracker::findTracksCA(ROframe& event)
 
             for (Int_t layer = (layer1 + 1); layer <= (layer2 - 1); ++layer) {
 
+              //check if road is a cylinder or a cone
+              dz = constants::mft::LayerZCoordinate()[layer2] - constants::mft::LayerZCoordinate()[layer1];
+              dRCone = 1 + dz * constants::mft::InverseLayerZCoordinate()[layer1];
+
+              dR2min = mLTFConeRadius ? dR2cut * dRCone * dRCone : dR2cut;
+
               // loop over the bins in the search window
               for (auto& bin : mBins[layer1][layer - 1][cluster1.indexTableBin]) {
 
@@ -414,7 +428,7 @@ void Tracker::findTracksCA(ROframe& event)
 
                   dR2 = getDistanceToSeed(cluster1, cluster2, cluster);
                   // add all points within a radius dR2cut
-                  if (dR2 >= dR2cut) {
+                  if (dR2 >= dR2min) {
                     continue;
                   }
 

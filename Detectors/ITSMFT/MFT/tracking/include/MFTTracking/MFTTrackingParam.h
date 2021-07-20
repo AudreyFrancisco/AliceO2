@@ -58,6 +58,10 @@ struct MFTTrackingParam : public o2::conf::ConfigurableParamHelper<MFTTrackingPa
   Int_t LTFseed2BinWin = 3;
   /// RPhi search window bin width for the intermediate points
   Int_t LTFinterBinWin = 3;
+  /// road for LTF algo : cylinder or cone (default)
+  Bool_t LTFConeRadius = kFALSE;
+  /// road for CA algo : cylinder or cone (default)
+  Bool_t CAConeRadius = kFALSE;
 
   O2ParamDef(MFTTrackingParam, "MFTTracking");
 };
